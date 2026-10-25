@@ -1,0 +1,24 @@
+name: FutureHub 自动签到
+
+on:
+  schedule:
+    - cron: '30 */6 * * *'   # 每 6 小时，避开 AnyRouter 的整点
+  workflow_dispatch:
+
+jobs:
+  checkin:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 执行签到
+        env:
+          FUTUREHUB_BASE: https://api.futureppo.top
+          FUTUREHUB_USER: ${{ secrets.FUTUREHUB_USER }}
+          FUTUREHUB_PASS: ${{ secrets.FUTUREHUB_PASS }}
+        run: python scripts/futurehub_checkin.py
