@@ -23,4 +23,8 @@ jobs:
           FUTUREHUB_PASS: ${{ secrets.FUTUREHUB_PASS }}
           FUTUREHUB_SESSION: ${{ secrets.FUTUREHUB_SESSION }}
           FUTUREHUB_UID: ${{ secrets.FUTUREHUB_UID }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          CUSTOM_SMTP_SERVER: ${{ secrets.CUSTOM_SMTP_SERVER }}
         run: python scripts/futurehub_checkin.py
