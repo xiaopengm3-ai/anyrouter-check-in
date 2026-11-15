@@ -7,9 +7,13 @@
 
 import json
 import os
+import smtplib
+import ssl
 import sys
 import urllib.error
 import urllib.request
+from email.header import Header
+from email.mime.text import MIMEText
 
 BASE = os.environ.get("FUTUREHUB_BASE", "https://api.futureppo.top").rstrip("/")
 USER = os.environ.get("FUTUREHUB_USER", "")
@@ -18,6 +22,28 @@ SESSION = os.environ.get("FUTUREHUB_SESSION", "").strip()
 UID = os.environ.get("FUTUREHUB_UID", "").strip()
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/131.0 Safari/537.36")
+
+
+def notify_fail(subject: str, body: str) -> None:
+    """失败时发邮件（配置了 EMAIL_USER/EMAIL_PASS 才发）。"""
+    user = os.environ.get("EMAIL_USER", "")
+    pwd = os.environ.get("EMAIL_PASS", "")
+    to = os.environ.get("EMAIL_TO", "") or user
+    host = os.environ.get("CUSTOM_SMTP_SERVER", "") or (
+        f"smtp.{user.split('@')[1]}" if "@" in user else "")
+    if not (user and pwd and host):
+        return
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = Header(subject, "utf-8")
+    msg["From"] = user
+    msg["To"] = to
+    try:
+        with smtplib.SMTP_SSL(host, 465, context=ssl.create_default_context(), timeout=25) as srv:
+            srv.login(user, pwd)
+            srv.sendmail(user, [to], msg.as_string())
+        print("[MAIL] 已发送失败通知")
+    except Exception as exc:  # noqa: BLE001
+        print(f"[WARN] 邮件发送失败: {type(exc).__name__}: {exc}")
 
 
 def req(path, payload=None, cookie=None, uid=None):
@@ -56,6 +82,9 @@ def main():
             cookie = SESSION
         else:
             print(f"[WARN] cookie 失效: {body.get('message')}")
+            notify_fail("【xectro】FutureHub cookie 已失效",
+                        f"cookie 验证失败：{body.get('message')}\n\n"
+                        "请重新登录 api.futureppo.top，复制 session cookie 更新 GitHub Secret FUTUREHUB_SESSION。")
 
     if not cookie:
         if not USER or not PASS:
@@ -78,6 +107,7 @@ def main():
         print(f"[SKIP] {msg}")
     else:
         print(f"[FAIL] 签到失败: {r}")
+        notify_fail("【xectro】FutureHub 签到失败", f"接口返回：{r}")
         return 1
 
     s, _ = req("/api/user/self", None, cookie, uid)
