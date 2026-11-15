@@ -2,7 +2,7 @@ name: FutureHub 自动签到
 
 on:
   schedule:
-    - cron: '30 */6 * * *'   # 每 6 小时，避开 AnyRouter 的整点
+    - cron: '30 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -21,4 +21,6 @@ jobs:
           FUTUREHUB_BASE: https://api.futureppo.top
           FUTUREHUB_USER: ${{ secrets.FUTUREHUB_USER }}
           FUTUREHUB_PASS: ${{ secrets.FUTUREHUB_PASS }}
+          FUTUREHUB_SESSION: ${{ secrets.FUTUREHUB_SESSION }}
+          FUTUREHUB_UID: ${{ secrets.FUTUREHUB_UID }}
         run: python scripts/futurehub_checkin.py
