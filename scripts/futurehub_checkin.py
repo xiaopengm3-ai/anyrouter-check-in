@@ -81,7 +81,7 @@ def main():
             print(f"[OK] 用 cookie 登录态，用户={d.get('username')} id={uid}")
             cookie = SESSION
         else:
-            print(f"[WARN] cookie 失效: {body.get('message')}")
+            print(f"[WARN] cookie 失效: {body.get('message')} raw={str(body)[:400]}")
             notify_fail("【xectro】FutureHub cookie 已失效",
                         f"cookie 验证失败：{body.get('message')}\n\n"
                         "请重新登录 api.futureppo.top，复制 session cookie 更新 GitHub Secret FUTUREHUB_SESSION。")
@@ -92,7 +92,7 @@ def main():
             return 1
         body, headers = req("/api/user/login", {"username": USER, "password": PASS})
         if not body.get("success"):
-            print(f"[FAIL] 登录失败（站点可能要 Turnstile）: {body.get('message')}")
+            print(f"[FAIL] 登录失败（站点可能要 Turnstile）: {body.get('message')} raw={str(body)[:400]}")
             return 1
         uid = body.get("data", {}).get("id")
         cookie = next((h.split("session=", 1)[1].split(";", 1)[0]
